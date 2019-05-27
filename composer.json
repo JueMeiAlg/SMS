@@ -1,0 +1,24 @@
+{
+    "name": "alg/sms",
+    "authors": [
+        {
+            "name": "ALG",
+            "email": "513051043@qq.com"
+        }
+    ],
+    "require": {
+        "predis/predis": "^1.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Alg\\SMS\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Alg\\SMS\\SMSServiceProvider"
+            ]
+        }
+    }
+}
