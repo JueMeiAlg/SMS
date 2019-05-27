@@ -19,6 +19,8 @@ use Alg\SMS\Contract\SMS as abstractSMS;
  * @license  四川猪太帅科技公司 http://www.51zts.com
  * @link     接口文档链接
  * @method static mixed getRandCode()
+ * @method static mixed check(string $tel, string $code)
+ * @method static mixed getSendError()
  */
 class SMS
 {
