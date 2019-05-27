@@ -13,6 +13,21 @@ use Illuminate\Support\Facades\Redis;
 abstract class SMS
 {
     /**
+     * 验证码不存在
+     */
+    const VERIFICATION_CODE_DOES_NOT_EXIST = 0;
+
+    /**
+     * 验证码不一致
+     */
+    const VERIFICATION_CODE_INCONSISTENCY = -1;
+
+    /**
+     * 验证码检验通过
+     */
+    const CALIBRATION_PASS = 1;
+
+    /**
      * 发送失败的错误消息
      *
      * @var
@@ -32,22 +47,22 @@ abstract class SMS
     /**
      * 验证手机号码和填写的验证码是否对应
      *
-     * @param string $tel  手机号码
-     * @param string $code 验证码
+     * @param $tel
+     * @param $code
      *
-     * @return bool
+     * @return int
      */
     public function check($tel, $code)
     {
         $prefix = config('sms.prefix');
         $cache = Redis::get($prefix . ':' . $tel);
         if (empty($cache)) {
-            return '验证码不存在';
+            return self::VERIFICATION_CODE_DOES_NOT_EXIST;
         }
         if ($cache != $code) {
-            return '验证码不一致';
+            return self::VERIFICATION_CODE_INCONSISTENCY;
         };
-        return true;
+        return self::CALIBRATION_PASS;
     }
 
     /**

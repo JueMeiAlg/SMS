@@ -52,7 +52,11 @@ $SMS::send(string $tel)  发送短信通知 return bool
 $SMS::sendCode(string $tel)  发送短信验证码 return bool
 ```
 ```$xslt
-$SMS::check(string $tel string $code)  检测验证码是否一致 return bool|string
+$SMS::check(string $tel string $code) 
+    检测验证码是否一致  return int
+    return 1 表示结果一致检验通过,
+    return 0 验证码不存在,
+    return -1 验证码不一致
 ```
 ```$xslt
 $SMS::getSendError()  获取发送错误消息 return string
