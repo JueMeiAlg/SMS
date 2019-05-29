@@ -21,6 +21,8 @@ use Alg\SMS\Contract\SMS as abstractSMS;
  * @method static mixed getRandCode()
  * @method static mixed check(string $tel, string $code)
  * @method static mixed getSendError()
+ * @method static mixed useTemplate(string $template)
+ * @method static mixed setTemplateParam(array $templateParam)
  */
 class SMS
 {
