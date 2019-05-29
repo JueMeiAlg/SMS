@@ -23,11 +23,11 @@ return [
             'pwd' => '',//密码
             'domain' => "http://sdk2.028lk.com/sdk2/BatchSend2.aspx",  //短信请求地址
             'signName' => '', //模板签名
-            "useTemplate" => "Login", //使用模板
+            "useTemplate" => "login", //使用模板
         ]
     ],
     "templateStore" => [ //模板库
-        "Login" => "欢迎登录本系统，您本次的验证码为:{code}，请在{time}分钟内输入。若非本人操作，请忽略本短信，切勿将验证码泄露给他人。",
+        "login" => "欢迎登录本系统，您本次的验证码为:{code}，请在{time}分钟内输入。若非本人操作，请忽略本短信，切勿将验证码泄露给他人。",
     ],
     'length' => '6', //验证码长度
     'EXPIRE' => 60,   //验证码过期时间,单位(秒)
