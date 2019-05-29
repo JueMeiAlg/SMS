@@ -36,7 +36,7 @@ class SMSServices
         $templateParamFuncName = $useTemplate . 'SMSTemplateParam';
         $templateParam = $this->$templateParamFuncName(); //获得模板参数
 
-        return $this->sms = $this->sms->useTemplate($useTemplate)
+        return $this->sms->useTemplate($useTemplate)
             ->setTemplateParam($templateParam)
             ->send($phone);
     }
