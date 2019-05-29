@@ -21,41 +21,6 @@ class LKSendSMS extends SMS
     private $templateParam = [];
 
     /**
-     * 发送验证码
-     *
-     * @param string $tel
-     *
-     * @return bool
-     * @throws \Exception
-     */
-    public function sendCode(string $tel)
-    {
-        //根据配置生成固定长度的随机码
-        $code = $this->getRandCode();
-        $prefix = config('sms.prefix');
-        Redis::setex($prefix . ':' . $tel, config('sms.EXPIRE'), $code);
-        $url = $this->getRequestAddress($tel, $this->getCodeMsg($code));
-        $response = $this->execSend($url);
-        return $this->checkSend($response);
-    }
-
-    /**
-     * 默认发送验证码模板
-     *
-     * @param $code
-     *
-     * @return string
-     */
-    private function getCodeMsg($code)
-    {
-        $template = config('sms.codeTemplate');
-        $time = date('i', config('sms.EXPIRE'));
-        $codeTemp = str_replace('{code}', $code, $template);
-        $codeMsg = str_replace('{time}', $time, $codeTemp) . "【" . config('sms.drive.lk.signName') . "】";
-        return rawurlencode(mb_convert_encoding($codeMsg, "gb2312", "utf-8"));
-    }
-
-    /**
      * 发送模板短信
      *
      * @param string $tel 接受短信的手机号码
@@ -65,7 +30,7 @@ class LKSendSMS extends SMS
      */
     public function send(string $tel)
     {
-        $url = $this->getRequestAddress($tel, $this->getMsg());
+        $url = $this->getRequestAddress($tel, $this->getMsg($tel));
         $response = $this->execSend($url);
         return $this->checkSend($response);
     }
@@ -121,15 +86,17 @@ class LKSendSMS extends SMS
     /**
      * 获得消息模板内容
      *
-     * @return mixed
+     * @param $tel
+     *
+     * @return string
      * @throws \Exception
      */
-    private function getMsg()
+    private function getMsg($tel)
     {
         //模板内容
         $templateSTR = config('sms.templateStore')[config('sms.drive.lk.useTemplate')];
         //模板参数
-        $param = $this->getTemplateParam();
+        $param = $this->getTemplateParam($tel);
         //模板内容替换
         $templateSTR = $this->templateReplace($param, $templateSTR) . "【" . config('sms.drive.lk.signName') . "】";
         return rawurlencode(mb_convert_encoding($templateSTR, "gb2312", "utf-8"));
@@ -141,11 +108,23 @@ class LKSendSMS extends SMS
      * @return array
      * @throws \Exception
      */
-    private function getTemplateParam()
+    private function getTemplateParam($tel)
     {
         if (empty($this->templateParam)) {
             throw new \Exception('没有设置模板参数');
         }
+
+        $prefix = config('sms.prefix');
+        $arrayLength = count($this->templateParam);
+
+        for ($i = 1; $i < $arrayLength; $i++) {
+            if (key_exists('cache_key' . $i, $this->templateParam)) {
+                $needCacheData = $this->templateParam[$this->templateParam['cache_key' . $i]];
+                Redis::setex($prefix . ':' . $tel . $this->templateParam['cache_key' . $i], config('sms.EXPIRE'), $needCacheData);
+                unset($this->templateParam['cache_key' . $i]);
+            }
+        }
+
         return $this->templateParam;
     }
 

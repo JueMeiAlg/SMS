@@ -48,56 +48,6 @@ class ALDYSendSMS extends SMS
     }
 
     /**
-     * 发送短信验证码
-     *
-     * @param $tel
-     *
-     * @return bool|mixed|\stdClass
-     * @throws \Exception
-     */
-    public function sendCode(string $tel)
-    {
-        $params = [];
-
-        //需要通知的手机用户
-        $params["PhoneNumbers"] = $tel;
-
-        //短信签名
-        $params["SignName"] = $this->signName;
-
-        //获得模板代码
-        $params["TemplateCode"] = config('sms.drive.aldy.templateCode');
-
-        //模板参数 默认code
-        $params['TemplateParam'] = $this->getTemplateParam();
-
-        //取随机数
-        $number = $this->getRandCode();
-
-        $prefix = config('sms.prefix');
-        Redis::setex($prefix . ':' . $tel, config('sms.EXPIRE'), $number);
-
-        // *** 需用户填写部分结束, 以下代码若无必要无需更改 ***
-        if (!empty($params["TemplateParam"]) && is_array($params["TemplateParam"])) {
-            $params["TemplateParam"] = json_encode($params["TemplateParam"], JSON_UNESCAPED_UNICODE);
-        }
-        // 初始化SignatureHelper实例用于设置参数，签名以及发送请求
-        $helper = new SignatureHelper();
-        // 此处可能会抛出异常，注意catch
-        $content = $helper->request(
-            $this->accessKeyId,
-            $this->accessKeySecret,
-            $this->domain,
-            array_merge($params, array(
-                "RegionId" => "cn-hangzhou",
-                "Action" => "SendSms",
-                "Version" => "2017-05-25",
-            ))
-        );
-        return $this->checkSend($content);
-    }
-
-    /**
      * 发送短信内容
      *
      * @param $tel
@@ -119,7 +69,7 @@ class ALDYSendSMS extends SMS
         $params["TemplateCode"] = config('sms.drive.aldy.templateCode');
 
         //模板参数
-        $params['TemplateParam'] = $this->getTemplateParam();
+        $params['TemplateParam'] = $this->getTemplateParam($tel);
 
         // *** 需用户填写部分结束, 以下代码若无必要无需更改 ***
         if (!empty($params["TemplateParam"]) && is_array($params["TemplateParam"])) {
@@ -161,13 +111,28 @@ class ALDYSendSMS extends SMS
     /**
      * 获得模板参数
      *
+     * @param $tel
+     *
+     * @return array
      * @throws \Exception
      */
-    private function getTemplateParam()
+    private function getTemplateParam($tel)
     {
         if (empty($this->templateParam)) {
             throw new \Exception('没有设置模板参数');
         }
+
+        $prefix = config('sms.prefix');
+        $arrayLength = count($this->templateParam);
+
+        for ($i = 1; $i < $arrayLength; $i++) {
+            if (key_exists('cache_key' . $i, $this->templateParam)) {
+                $needCacheData =  $this->templateParam[$this->templateParam['cache_key' . $i]];
+                Redis::setex($prefix . ':' . $tel . $this->templateParam['cache_key' . $i], config('sms.EXPIRE'), $needCacheData);
+                unset($this->templateParam['cache_key' . $i]);
+            }
+        }
+
         return $this->templateParam;
     }
 

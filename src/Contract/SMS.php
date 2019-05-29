@@ -55,7 +55,7 @@ abstract class SMS
     public function check($tel, $code)
     {
         $prefix = config('sms.prefix');
-        $cache = Redis::get($prefix . ':' . $tel);
+        $cache = Redis::get($prefix . ':' . $tel.'code');
         if (empty($cache)) {
             return self::VERIFICATION_CODE_DOES_NOT_EXIST;
         }
