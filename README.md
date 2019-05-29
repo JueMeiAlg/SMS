@@ -10,29 +10,53 @@
 
 `php artisan vendor:publish --provider="Alg\SMS\SMSServiceProvider" 
 `
-#### 发送验证码
+#### 调用案例
 ```$xslt
-use Alg\SMS\Facades\SMS;
+class SMSServices
+{
+    private $smsServices = 'lk'; //短信服务商
 
-        public function example(SMS $SMS)
-           {
-               $SMS::get('lk')->useTemplate('example')->setTemplateParam([
-                   'code'=>$SMS::getRandCode()
-               ])->sendCode('12345678911');
-           }
-```
+    private $sms; //具体发送短信的服务对象
 
-#### 发送短信通知
-```$xslt
-use Alg\SMS\Facades\SMS;
+    public function __construct()
+    {
+        $this->sms = App::make('sms')->get($this->smsServices);
+    }
 
-        public function example(SMS $SMS)
-           {
-               $SMS::get('lk')->useTemplate('goodsBuySuccess')->setTemplateParam([
-                   'product'=>'上衣',
-                   'order'=>'20180322',
-               ])->send('12345678911');
-           }
+    /**
+     * 发送短信方法
+     *
+     * @param string $phone       接受短信的手机号
+     * @param string $useTemplate 使用的短信模板
+     *
+     * @return mixed
+     */
+    public function send($phone, $useTemplate = 'login')
+    {
+        $templateParamFuncName = $useTemplate . 'SMSTemplateParam';
+        $templateParam = $this->$templateParamFuncName(); //获得模板参数
+
+        return $this->sms->useTemplate($useTemplate)
+            ->setTemplateParam($templateParam)
+            ->send($phone);
+    }
+
+
+    /**
+     * 登录短信模板参数
+     *
+     * @return array
+     */
+    public function loginSMSTemplateParam()
+    {
+        return [
+            'code' => $this->sms::getRandCode(),
+            'time' => date('i', config('sms.EXPIRE')),
+            'cache_key1' => 'code' //需要被缓存的键,可以继续增加 如cache_key2...
+        ];
+    }
+
+}
 ```
 
 #### 常用方法
@@ -48,11 +72,10 @@ $SMS::setTemplateParam(array $param)  设置模板参数 return $this
 ```$xslt
 $SMS::send(string $tel)  发送短信通知 return bool
 ```
-```$xslt
-$SMS::sendCode(string $tel)  发送短信验证码 return bool
-```
+
 ```$xslt
 $SMS::check(string $tel string $code) 
+    check只是提供一个快速检测方法, 他检测检验码你传入的参数 需要有一个 code 键  才行,如果是需要检测其他键 需要自己实现一个check
     检测验证码是否一致  return int
     return 1 表示结果一致检验通过,
     return 0 验证码不存在,
