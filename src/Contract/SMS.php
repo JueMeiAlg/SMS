@@ -45,17 +45,18 @@ abstract class SMS
     }
 
     /**
-     * 验证手机号码和填写的验证码是否对应
+     * 验证手机号码和填写的信息是否对应
      *
-     * @param $tel
-     * @param $code
+     * @param        $tel
+     * @param        $code
+     * @param string $cacheKey
      *
      * @return int
      */
-    public function check($tel, $code)
+    public function check($tel, $code, $cacheKey = 'code')
     {
         $prefix = config('sms.prefix');
-        $cache = Redis::get($prefix . ':' . $tel.'code');
+        $cache = Redis::get($prefix . ':' . $tel.$cacheKey);
         if (empty($cache)) {
             return self::VERIFICATION_CODE_DOES_NOT_EXIST;
         }
@@ -63,6 +64,18 @@ abstract class SMS
             return self::VERIFICATION_CODE_INCONSISTENCY;
         };
         return self::CALIBRATION_PASS;
+    }
+
+    /**
+     * 清除手机的缓存信息
+     *
+     * @param $phone
+     * @param $cacheKey
+     */
+    public function clearCache($phone, $cacheKey)
+    {
+        $prefix = config('sms.prefix');
+         Redis::del($prefix . ':' . $phone.$cacheKey);
     }
 
     /**
